@@ -14,8 +14,8 @@ $ git clone https://github.com/preprocessed-connectomes-project/abide.git
 ```
 Otherwise, you will be able to find the database in json format in the following path
 ```
-ASDNet-3D/data/data.json
-ASDNet-3D/data/annotations.json
+/home/lvbellon/ASDNet/data/data.json
+/home/lvbellon/ASDNet/data/annotations.json
 ```
 # Download pre-trained models
 
@@ -42,13 +42,11 @@ pip install monai
 In order to train and validate the model, you'll need to run the following lines:
 # Training and validate with ASDNet-2D
 ```
-$ cd ASDNet-2D
-$ python train.py --model resnet50 --pretrained-model --batch-size 64 --test-batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt 
+$ python train_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 64 --test-batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt 
 ```
 # Training and validate with ASDNet-3D
 ```
-$ cd ASDNet-3D
-$ python train.py 
+$ python train_ASDNet3D.py 
 ```
 ## Method
 
@@ -76,19 +74,16 @@ $ python train.py
 In order to test the model, you'll need to run the following lines:
 # Testing with ASDNet-2D
 ```
-$ cd ASDNet-2D
-$ python test.py --model resnet50 --pretrained-model --batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt
+$ python main_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt
 ```
 # Testing with ASDNet-3D
 ```
-$ cd ASDNet-3D
-$ python main.py -mode test
+$ python main_ASDNet3D.py -mode test
 ```
 ## Demo
 To test the model only on a random image of the dataset, you'll need to run the following lines:
 ```
-$ cd ASDNet-3D
-$ python main.py -mode demo
+$ python main_ASDNet3D.py -mode demo
 ```
 
 ## References
