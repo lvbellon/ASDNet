@@ -25,7 +25,7 @@ ASDNet-3D/data/annotations.json
 | 3D-ResNets-PyTorch |[https://drive.google.com/drive/folders/1xbYbZ7rpyjftI_KCk6YuL-XrfQDz7Yd4](https://drive.google.com/drive/folders/1xbYbZ7rpyjftI_KCk6YuL-XrfQDz7Yd4)|
 | MedicalNet |[https://drive.google.com/file/d/13tnSvXY7oDIEloNFiGTsjUIYfS3g3BfG/view](https://drive.google.com/file/d/13tnSvXY7oDIEloNFiGTsjUIYfS3g3BfG/view)|
 | AD-Prediction |[https://pytorch.org/hub/pytorch_vision_resnet/](https://pytorch.org/hub/pytorch_vision_resnet/)|
-| ASDNet |[]|
+| ASDNet |[https://drive.google.com/drive/folders/1d74NKw6Md4difhD4p8HPeGXvXr2-b_QK?usp=sharing](https://drive.google.com/drive/folders/1d74NKw6Md4difhD4p8HPeGXvXr2-b_QK?usp=sharing)|
 
 Unzip and move files of MedicalNet
 ```
