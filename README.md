@@ -4,7 +4,7 @@
 To run the models, you'll need to download this repository:
 ```
 $ git clone 
-$ cd ASDNet-3D
+$ cd ASDNet
 ```
 ## Overview
 # Download data
