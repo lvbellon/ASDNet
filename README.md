@@ -91,7 +91,7 @@ $ python main.py -mode demo
 ```
 
 ## References
-```
+```BibTex
 @article{chen2019med3d,
     title={Med3D: Transfer Learning for 3D Medical Image Analysis},
     author={Chen, Sihong and Ma, Kai and Zheng, Yefeng},
