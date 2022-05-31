@@ -68,8 +68,8 @@ $ python train.py
 ----------
 | Method | model_zoo |
 |---|---|
-| ASDNet-2D |model_resnet50_with_pre-training.pt|
-| ASDNet-3D ||
+| ASDNet-2D |model_resnet50_with_pre-training.pt model_resnet50_without_pre-training.pt|
+| ASDNet-3D |model_monai_without_pre-training_BCE.pt model_monai_with_pre-training.pt model_monai_with_pre-training_CE.pt mod el_monai_with_pre-training_sfl.pt model_monai_without_pre-training_BCE_4layers.pt model_monai_without_pre-training_BCE_6layers.pt model_monai_without_pre-training_CB_6layers.pt|
 
 
 In order to test the model, you'll need to run the following lines:
