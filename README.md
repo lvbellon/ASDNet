@@ -1,4 +1,4 @@
-# ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Calssification Using rs-fMRI
+# ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Calssification Using Resting State fMRI
 ## Usage
 
 To run the models, you'll need to download this repository:
