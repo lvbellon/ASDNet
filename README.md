@@ -92,29 +92,29 @@ $ python main.py -mode demo
 
 ## References
 ```
-    @article{chen2019med3d,
-        title={Med3D: Transfer Learning for 3D Medical Image Analysis},
-        author={Chen, Sihong and Ma, Kai and Zheng, Yefeng},
-        journal={arXiv preprint arXiv:1904.00625},
-        year={2019}
-    }
+@article{chen2019med3d,
+    title={Med3D: Transfer Learning for 3D Medical Image Analysis},
+    author={Chen, Sihong and Ma, Kai and Zheng, Yefeng},
+    journal={arXiv preprint arXiv:1904.00625},
+    year={2019}
+}
     
-    @inproceedings{hara3dcnns,
-        author={Kensho Hara and Hirokatsu Kataoka and Yutaka Satoh},
-        title={Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?},
-        booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-        pages={6546--6555},
-        year={2018},
-    }
+@inproceedings{hara3dcnns,
+    author={Kensho Hara and Hirokatsu Kataoka and Yutaka Satoh},
+    title={Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?},
+    booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+    pages={6546--6555},
+    year={2018},
+}
     
-    @article{klein2012101,
-          title={101 labeled brain images and a consistent human cortical labeling protocol},
-          author={Klein, Arno and Tourville, Jason},
-          journal={Frontiers in neuroscience},
-          volume={6},
-          pages={171},
-          year={2012},
-          publisher={Frontiers}
-    }
+@article{klein2012101,
+      title={101 labeled brain images and a consistent human cortical labeling protocol},
+      author={Klein, Arno and Tourville, Jason},
+      journal={Frontiers in neuroscience},
+      volume={6},
+      pages={171},
+      year={2012},
+      publisher={Frontiers}
+}
 
 ```
