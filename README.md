@@ -61,11 +61,16 @@ $ python train.py
 # ASDNet-3D
 
 ## Testing
+----------
+| Method | model_zoo |
+|---|---|
+| ASDNet-2D |model_resnet50_with_pre-training.pt|
+| ASDNet-3D ||
 In order to test the model, you'll need to run the following lines:
 # Testing with ASDNet-2D
 ```
 $ cd ASDNet-2D
-$ python main.py 
+$ python test.py 
 ```
 # Testing with ASDNet-3D
 ```
