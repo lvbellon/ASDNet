@@ -106,5 +106,15 @@ $ python main.py -mode demo
         pages={6546--6555},
         year={2018},
     }
+    
+    @article{klein2012101,
+          title={101 labeled brain images and a consistent human cortical labeling protocol},
+          author={Klein, Arno and Tourville, Jason},
+          journal={Frontiers in neuroscience},
+          volume={6},
+          pages={171},
+          year={2012},
+          publisher={Frontiers}
+    }
 
 ```
