@@ -38,7 +38,7 @@ unzip MedicalNet_pytorch_files2.zip
 ```
 pip install monai
 ```
-## Training and validation
+## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
 # Training and validate with ASDNet-2D
 ```
@@ -63,7 +63,7 @@ $ python train_ASDNet3D.py
 ![My Image](/assets/ASDNet2D.png)
 # ASDNet-3D
 
-## Testing
+## Usage (Test)
 ----------
 | Method | model_zoo |
 |---|---|
