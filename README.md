@@ -66,7 +66,7 @@ $ python train_ASDNet3D.py
 
 ## Network architectures
 # ASDNet2D Architecture
-![My Image](/assets/ASDNet2D.png)
+<p align="center"><img src="ASDNet2D.png" width=500"/></p>
 # ASDNet3D Architecture
 
 ## Usage (Test)
