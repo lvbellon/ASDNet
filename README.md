@@ -120,4 +120,12 @@ $ python main_ASDNet3D.py -mode demo
       publisher={Frontiers}
 }
 
+@inproceedings{cui2019class,
+  title={Class-balanced loss based on effective number of samples},
+  author={Cui, Yin and Jia, Menglin and Lin, Tsung-Yi and Song, Yang and Belongie, Serge},
+  booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+  pages={9268--9277},
+  year={2019}
+}
+
 ```
