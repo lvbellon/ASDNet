@@ -60,7 +60,7 @@ $ python train_ASDNet3D.py
 
 ## Network architectures
 # ASDNet-2D
-<img src="https://github.com/lvbellon/ASDNet.git/ASDNet2D.png" height="320px"/> 
+![alt text](https://github.com/lvbellon/ASDNet.git/ASDNet2D.png?raw=true)
 # ASDNet-3D
 
 ## Testing
