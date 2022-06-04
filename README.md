@@ -35,7 +35,15 @@ unzip MedicalNet_pytorch_files2.zip
 ```
 
 ## Requirements
-PyTorch 0.3.1
+- Python 3.7.0
+- PyTorch-0.4.1
+- CUDA Version 9.0
+
+## Instalation
+
+- Install Python 3.7.0
+- pip install -r requirements.txt
+
 ## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
 # ASDNet2D
