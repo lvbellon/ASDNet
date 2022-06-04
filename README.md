@@ -1,4 +1,4 @@
-# ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Calssification Using Resting State fMRI
+# ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Classification Using Resting State fMRI
 ## Usage
 
 To run the models, you'll need to download this repository:
@@ -35,16 +35,14 @@ unzip MedicalNet_pytorch_files2.zip
 ```
 
 ## Requirements
-```
-pip install monai
-```
-## Training and validation
+PyTorch 0.3.1
+## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
-# Training and validate with ASDNet-2D
+# ASDNet2D
 ```
 $ python train_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 64 --test-batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt 
 ```
-# Training and validate with ASDNet-3D
+# ASDNet3D
 ```
 $ python train_ASDNet3D.py 
 ```
@@ -59,11 +57,11 @@ $ python train_ASDNet3D.py
 | MONAI |[https://github.com/Project-MONAI/MONAI](https://github.com/Project-MONAI/MONAI.git)|
 
 ## Network architectures
-# ASDNet-2D
-<img src="https://github.com/lvbellon/ASDNet.git/ASDNet2D.png" height="320px"/> 
-# ASDNet-3D
+# ASDNet2D Architecture
+![My Image](/assets/ASDNet2D.png)
+# ASDNet3D Architecture
 
-## Testing
+## Usage (Test)
 ----------
 | Method | model_zoo |
 |---|---|
@@ -72,11 +70,11 @@ $ python train_ASDNet3D.py
 
 
 In order to test the model, you'll need to run the following lines:
-# Testing with ASDNet-2D
+# ASDNet2D
 ```
 $ python main_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt
 ```
-# Testing with ASDNet-3D
+# ASDNet3D
 ```
 $ python main_ASDNet3D.py -mode test
 ```
