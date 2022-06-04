@@ -35,9 +35,7 @@ unzip MedicalNet_pytorch_files2.zip
 ```
 
 ## Requirements
-```
-pip install monai
-```
+PyTorch 0.3.1
 ## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
 # ASDNet2D
