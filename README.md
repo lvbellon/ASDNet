@@ -68,6 +68,7 @@ $ python train_ASDNet3D.py
 # ASDNet2D Architecture
 ![](ADNet2D.png)
 # ASDNet3D Architecture
+![](ASDNet2D.png)
 
 ## Usage (Test)
 ----------
