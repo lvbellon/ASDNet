@@ -59,9 +59,9 @@ $ python train_ASDNet3D.py
 | MONAI |[https://github.com/Project-MONAI/MONAI](https://github.com/Project-MONAI/MONAI.git)|
 
 ## Network architectures
-# ASDNet-2D
+# ASDNet2D Architecture
 ![My Image](/assets/ASDNet2D.png)
-# ASDNet-3D
+# ASDNet3D Architecture
 
 ## Usage (Test)
 ----------
