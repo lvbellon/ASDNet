@@ -60,7 +60,7 @@ $ python train_ASDNet3D.py
 
 ## Network architectures
 # ASDNet-2D
-![ASDNet2D](ASDNet2D.png)
+![My Image](ASDNet2D.png)
 # ASDNet-3D
 
 ## Testing
