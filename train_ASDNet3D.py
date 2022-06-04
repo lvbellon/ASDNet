@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-import os
 import logging
 import copy
 import time
@@ -11,7 +10,6 @@ import os.path as osp
 from sklearn.metrics import (f1_score, recall_score, precision_score, confusion_matrix)
 
 import torch
-import torchio as tio
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -20,33 +18,34 @@ from torchvision import transforms
 from torch.autograd import Variable
 
 
-from dataloader import ABIDE, ABIDE3D  # NOQA
-import model.ASDNet3D as ASDNet3D
+from dataloader import ABIDE3D  # NOQA
+import model.ASDNet3D as  ASDNet3D
 from utils import Evaluator
 from loss import *
 
+import transforms as mt_transforms
+
+
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter('runs/model_monai_without_pre-training_BCE_7layers')
+writer = SummaryWriter('runs/model_monai_without_pre-training_softmax_resnet101_3blocks_7layers')
 
 # Arguments
 parser = argparse.ArgumentParser(description='Autism classification')
-parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'resnet101'],
+parser.add_argument('--model', type=str, default='resnet101', choices=['resnet50', 'resnet101'],
                     help ='model classification for training (default: resnet50)')
 parser.add_argument('--pretrained-model', action='store_true', default=False,
                     help = 'model classification with pretrained weights for training')   
-parser.add_argument('--backbone', type=str, default='resnet50', choices=['resnet50', 'resnet101'],
-                    help="backbone model for model classification")
-parser.add_argument('--batch-size', type=int, default=32, metavar='N',
+parser.add_argument('--batch-size', type=int, default=12, metavar='N',
                     help='input batch size for training (default: 32)')
-parser.add_argument('--test-batch-size', type=int, default=64, metavar='N',
+parser.add_argument('--test-batch-size', type=int, default=16, metavar='N',
                     help='input batch size for testing (default: 128)')
 parser.add_argument('--n-class', type=int, default=2,
                     help='input number of classes for training (default:2)')
 parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 15)')
-parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.01)')
-parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam'],
+parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'Adadelta'],
                     help='optimizer for training (default: Adam)')
 parser.add_argument('--momentum', type=float, default=0.99, choices=[0.5, 0.99], metavar='M',
                     help='optimizer momentum (default: 0.5)')
@@ -56,8 +55,12 @@ parser.add_argument('--alpha', type=float, default=-1, metavar='M',
                     help='learning rate decay factor (default: 0.5)')
 parser.add_argument('--gamma', type=float, default=0.5, metavar='M', choices=[2, 0.5],
                     help='learning rate decay factor (default: 0.5)')
-parser.add_argument('--loss', type=str, default='BCE', choices = ['CE', 'BCE', 'FocalLoss'],
-                    help='model loss (default: CE)')           
+parser.add_argument('--loss', type=str, default='FocalLoss', choices = ['CE', 'BCE', 'FocalLoss'],
+                    help='model loss (default: CE)') 
+parser.add_argument('--loss_type', type=str, default='softmax', choices = ['focal', 'sigmoid', 'softmax'],
+                    help='model loss (default: CE)')
+parser.add_argument('--weights', type=list, default=[1, 0.5], metavar='M',
+                    help='weights for model training')             
 parser.add_argument('--act-loss', action='store_true', default=True,
                     help = 'function activation loss')  
 parser.add_argument('--reduction', type=str, default='mean', choices = ['mean', 'sum'],
@@ -69,7 +72,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before '
                          'logging training status')
-parser.add_argument('--save', type=str, default='model_monai_without_pre-training_BCE_7layers.pt',
+parser.add_argument('--save', type=str, default='model_monai_without_pre-training_softmax_resnet101_3blocks_7layers.pt',
                     help='file on which to save model weights')
 
 args = parser.parse_args()
@@ -81,14 +84,12 @@ if args.cuda:
 
 kwargs = {'num_workers': 0, 'pin_memory': True} if args.cuda else {}
 
-mean = (0.0)
-std = (1.0)
 
 # Data loaders
 trainDataset = ABIDE3D(split='train',
         transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean, std)
+            mt_transforms.NormalizeInstance3D()
             ]),
         target_transform=None
         )
@@ -97,8 +98,8 @@ train_loader = DataLoader(trainDataset, args.batch_size, shuffle=True, **kwargs)
 
 valDataset = ABIDE3D(split='valid', 
         transform=transforms.Compose([
-            transforms.ToTensor(), 
-            transforms.Normalize(mean, std)
+            transforms.ToTensor(),
+            mt_transforms.NormalizeInstance3D()
             ]),
         target_transform=None
         )
@@ -107,18 +108,32 @@ val_loader = DataLoader(valDataset, args.test_batch_size, shuffle=False, **kwarg
 
 
 # Model
-model = ASDNet3D.resnet50(spatial_dims=3, n_input_channels=1, num_classes=args.n_class)
-if args.pretrained_model == True:
-    model_dict = model.state_dict()
-    pretrain = torch.load('/home/lvbellon/PROJECT/pretrain/resnet_50_23dataset.pth')
-    pretrain['state_dict'] = {k.replace('module.', ''): v for k, v in pretrain['state_dict'].items()}
-    missing = tuple({k for k in model_dict.keys() if k not in pretrain['state_dict']})
-    logging.debug(f"missing in pretrained: {len(missing)}")
-    inside = tuple({k for k in pretrain['state_dict'] if k in model_dict.keys()})
-    logging.debug(f"inside pretrained: {len(inside)}")
-    unused = tuple({k for k in pretrain['state_dict'] if k not in model_dict.keys()})
-    pretrain['state_dict'] = {k: v for k, v in pretrain['state_dict'].items() if k in model_dict.keys()}
-    model.load_state_dict(pretrain['state_dict'], strict=False)
+if args.model == 'resnet50':
+    model = ASDNet3D.resnet50(spatial_dims=3, n_input_channels=1, num_classes=args.n_class)
+    if args.pretrained_model == True:
+        model_dict = model.state_dict()
+        pretrain = torch.load('/home/lvbellon/PROJECT/pretrain/resnet_50_23dataset.pth')
+        pretrain['state_dict'] = {k.replace('module.', ''): v for k, v in pretrain['state_dict'].items()}
+        missing = tuple({k for k in model_dict.keys() if k not in pretrain['state_dict']})
+        logging.debug(f"missing in pretrained: {len(missing)}")
+        inside = tuple({k for k in pretrain['state_dict'] if k in model_dict.keys()})
+        logging.debug(f"inside pretrained: {len(inside)}")
+        unused = tuple({k for k in pretrain['state_dict'] if k not in model_dict.keys()})
+        pretrain['state_dict'] = {k: v for k, v in pretrain['state_dict'].items() if k in model_dict.keys()}
+        model.load_state_dict(pretrain['state_dict'], strict=False)
+elif args.model == 'resnet101':
+    model = ASDNet3D.resnet101(spatial_dims=3, n_input_channels=1, num_classes=args.n_class)
+    if args.pretrained_model == True:
+        model_dict = model.state_dict()
+        pretrain = torch.load('/home/lvbellon/PROJECT/pretrain/resnet_50_23dataset.pth')
+        pretrain['state_dict'] = {k.replace('module.', ''): v for k, v in pretrain['state_dict'].items()}
+        missing = tuple({k for k in model_dict.keys() if k not in pretrain['state_dict']})
+        logging.debug(f"missing in pretrained: {len(missing)}")
+        inside = tuple({k for k in pretrain['state_dict'] if k in model_dict.keys()})
+        logging.debug(f"inside pretrained: {len(inside)}")
+        unused = tuple({k for k in pretrain['state_dict'] if k not in model_dict.keys()})
+        pretrain['state_dict'] = {k: v for k, v in pretrain['state_dict'].items() if k in model_dict.keys()}
+        model.load_state_dict(pretrain['state_dict'], strict=False)
 
 cp_model = copy.deepcopy(model)
 
@@ -138,14 +153,18 @@ if args.optimizer == 'SGD':
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 elif args.optimizer == 'Adam':
     optimizer = optim.Adam(model.parameters(), lr=args.lr, betas = (0.9, 0.99))
+elif args.optimizer == 'Adadelta':
+    optimizer = optim.Adadelta(model.parameters(), lr=args.lr, rho=0.9, eps=1e-06)
 
 if args.loss == 'CE':
     criterion = nn.CrossEntropyLoss(reduction=args.reduction, ignore_index=-1)
 elif args.loss == 'BCE':
     if args.act_loss == True:
         activation = nn.Sigmoid()
+        #criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
         criterion = nn.BCELoss(reduction=args.reduction)
     else:
+        #criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
         criterion = nn.BCELoss(reduction=args.reduction)
 elif args.loss == 'FocalLoss':
     if args.act_loss == True:
@@ -167,7 +186,7 @@ def train(epoch):
         target = nn.functional.one_hot(target, num_classes=args.n_class).to(torch.float32)
         optimizer.zero_grad()
         output = model(data)
-        loss = criterion(activation(output.squeeze(1)), target)
+        loss = CB_loss(target.float(), output.squeeze(), args.weights, args.n_class, args.loss_type, 0.9999, args.gamma)
         pred = output.data.cpu().float()
         pred = F.softmax(pred, dim=1).numpy()
         pred = np.argmax(pred, axis=1)
@@ -201,7 +220,7 @@ def valid(epoch):
         with torch.no_grad():
             output = model(data)
 
-        val_loss += criterion(activation(output.squeeze(1)), target).item()
+        val_loss += CB_loss(target.float(), output, args.weights, args.n_class, args.loss_type, 0.9999, args.gamma)
         pred = output.data.cpu().float()
         pred = F.softmax(pred, dim=1).numpy()
         pred = np.argmax(pred, axis=1)

@@ -25,7 +25,7 @@ from monai.utils import deprecated_arg
 
 
 def get_inplanes():
-    return [64, 128, 256, 512, 1024]
+    return [64, 128, 256, 512, 1024, 2048]
 
 
 def get_avgpool():
@@ -229,8 +229,9 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2)
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2)
         self.layer5 = self._make_layer(block, block_inplanes[4], layers[4], spatial_dims, shortcut_type, stride=2)
+        self.layer6 = self._make_layer(block, block_inplanes[5], layers[5], spatial_dims, shortcut_type, stride=2)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
-        self.fc1 = nn.Linear(block_inplanes[4] * block.expansion, num_classes) if feed_forward else None
+        self.fc1 = nn.Linear(block_inplanes[5] * block.expansion, num_classes) if feed_forward else None
 
 
         for m in self.modules():
@@ -300,6 +301,7 @@ class ResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
+        x = self.layer6(x)
 
         x = self.avgpool(x)
 
@@ -379,7 +381,7 @@ def resnet50(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> 
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     #return _resnet("resnet50", ResNetBottleneck, [3, 4, 6, 3], get_inplanes(), pretrained, progress, **kwargs)
-    return _resnet("resnet50", ResNetBottleneck, [3, 4, 6, 3, 6], get_inplanes(), pretrained, progress, **kwargs)
+    return _resnet("resnet50", ResNetBottleneck, [3, 4, 6, 3, 3], get_inplanes(), pretrained, progress, **kwargs)
 
 
 def resnet101(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
@@ -391,8 +393,7 @@ def resnet101(pretrained: bool = False, progress: bool = True, **kwargs: Any) ->
         pretrained (bool): If True, returns a model pre-trained on 8 medical datasets
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet("resnet101", ResNetBottleneck, [3, 4, 23, 3], get_inplanes(), pretrained, progress, **kwargs)
-
+    return _resnet("resnet101", ResNetBottleneck, [3, 4, 23, 3, 3], get_inplanes(), pretrained, progress, **kwargs)
 
 def resnet152(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
     """ResNet-152 with optional pretrained support when `spatial_dims` is 3.

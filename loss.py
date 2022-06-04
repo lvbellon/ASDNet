@@ -42,9 +42,39 @@ def Focal_Loss(inputs, targets, alpha = 0.25, gamma = 2):
     # returning focal loss
     return torch.sum(focal_loss)
 
+def focal_loss(labels, logits, alpha, gamma):
+    """Compute the focal loss between `logits` and the ground truth `labels`.
+    Focal loss = -alpha_t * (1-pt)^gamma * log(pt)
+    where pt is the probability of being classified to the true class.
+    pt = p (if true class), otherwise pt = 1 - p. p = sigmoid(logit).
+    Args:
+      labels: A float tensor of size [batch, num_classes].
+      logits: A float tensor of size [batch, num_classes].
+      alpha: A float tensor of size [batch_size]
+        specifying per-example weight for balanced cross entropy.
+      gamma: A float scalar modulating loss from hard and easy examples.
+    Returns:
+      focal_loss: A float32 scalar representing normalized total loss.
+    """    
+    BCLoss = F.binary_cross_entropy_with_logits(input = logits, target = labels, reduction = 'none')
+
+    if gamma == 0.0:
+        modulator = 1.0
+    else:
+        modulator = torch.exp(-gamma * labels * logits - gamma * torch.log(1 + 
+            torch.exp(-1.0 * logits)))
+
+    loss = modulator * BCLoss
+
+    weighted_loss = alpha * loss
+    focal_loss = torch.sum(weighted_loss)
+
+    focal_loss /= torch.sum(labels)
+    return focal_loss
+
 # Weighted focal loss: Taken from https://github.com/vandit15/Class-balanced-loss-pytorch/blob/master/class_balanced_loss.py
 
-def CB_loss(logits, labels, samples_per_cls, no_of_classes, loss_type, beta):
+def CB_loss(labels, logits, samples_per_cls, no_of_classes, loss_type, beta, gamma):
     """Compute the Class Balanced Loss between `logits` and the ground truth `labels`.
     Class Balanced Loss: ((1-beta)/(1-beta^n))*Loss(labels, logits)
     where Loss is one of the standard losses used for Neural Networks.
@@ -62,22 +92,27 @@ def CB_loss(logits, labels, samples_per_cls, no_of_classes, loss_type, beta):
     effective_num = 1.0 - np.power(beta, samples_per_cls)
     weights = (1.0 - beta) / np.array(effective_num)
     weights = weights / np.sum(weights) * no_of_classes
+    #labels_one_hot = F.one_hot(labels, no_of_classes).float()
 
     weights = torch.tensor(weights).float()
-    weights = weights.unsqueeze(0)
-    #breakpoint()
-    device = torch.device(str("cuda:0") if torch.cuda.is_available() else "cpu") 
-    weights = weights.to(device)
-    weights = weights.repeat(labels.shape[0], 1) * labels
+    weights = weights.unsqueeze(0).cuda()
+    weights = weights.repeat(labels.shape[0],1) * labels
     weights = weights.sum(1)
     weights = weights.unsqueeze(1)
-    weights = weights.repeat(1, no_of_classes)
+    weights = weights.repeat(1,no_of_classes)
 
-    if loss_type == "sigmoid":
-        cb_loss = F.binary_cross_entropy_with_logits(input = logits, target = labels, weight = weights)
+    if loss_type == "focal":
+        cb_loss = focal_loss(labels, logits, weights, gamma)
+    elif loss_type == "sigmoid":
+        criterion = nn.BCEWithLogitsLoss(weights.detach())
+        cb_loss = criterion(logits, labels)
     elif loss_type == "softmax":
-        pred = logits.softmax(dim = 1)
-        cb_loss = F.binary_cross_entropy(input = pred, target = labels, weight = weights)
+        if (logits.shape[-1] == 2):
+            pred = logits.softmax(dim = 0)
+        else:
+            pred = logits.softmax(dim = 1)
+        criterion = nn.BCELoss(weights.detach())
+        cb_loss = criterion(pred, labels)
     return cb_loss
 
 
@@ -167,6 +202,3 @@ def sigmoid_focal_loss_star(
         loss = loss.sum()
 
     return loss
-
-
-

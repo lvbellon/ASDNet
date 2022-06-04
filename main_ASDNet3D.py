@@ -3,8 +3,6 @@ import os
 import copy
 import json
 import time
-from tkinter import N
-import monai
 import logging
 import tqdm
 import random
@@ -12,18 +10,16 @@ import argparse
 import numpy as np
 import os.path as osp
 import matplotlib.pyplot as plt
-from skimage.morphology import ball
 
 
 from itertools import cycle
 from sklearn.metrics import (precision_recall_curve, average_precision_score, PrecisionRecallDisplay, 
-                            confusion_matrix, f1_score, recall_score, precision_score, plot_confusion_matrix)
+                            confusion_matrix, f1_score, recall_score, precision_score, roc_curve, auc)
 
 from utils import Evaluator
 from loss import *
 
 import torch
-import torchio as tio
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -31,31 +27,28 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torch.autograd import Variable
 
-from dataloader import ABIDE, ABIDE3D  # NOQA
-import ASDNet3D.model.ASDNet3D as ASDNet3D
+from dataloader import ABIDE3D  # NOQA
+import model.ASDNet3D as ASDNet3D
 
+import transforms as mt_transforms
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter('runs/test_model_monai_without_pre-training_BCE_6layers')
+writer = SummaryWriter('runs/test_model_monai_without_pre-training_softmax_resnet101_3blocks')
 
 # Arguments
 parser = argparse.ArgumentParser(description='Autism classification')
-parser.add_argument('--mode', type=str, default='test', choices=['test', 'demo'],
-                    help='type of test to calculate the results')
-parser.add_argument('--model', type=str, default='resnet50', choices=['resnet50', 'resnet101'],
+parser.add_argument('--model', type=str, default='resnet101', choices=['resnet50', 'resnet101'],
                     help ='model classification for training (default: resnet50)')
-parser.add_argument('--pretrained-model', action='store_true', default=True,
+parser.add_argument('--pretrained-model', action='store_true', default=False,
                     help = 'model classification with pretrained weights for training')   
-parser.add_argument('--backbone', type=str, default='resnet50', choices=['resnet50', 'resnet101'],
-                    help="backbone model for model classification")
 parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                    help='input batch size for testing (default: 128)')
+                    help='input batch size for training (default: 32)')
 parser.add_argument('--n-class', type=int, default=2,
                     help='input number of classes for training (default:2)')
 parser.add_argument('--epochs', type=int, default=20, metavar='N',
                     help='number of epochs to train (default: 15)')
-parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+parser.add_argument('--lr', type=float, default=0.00001, metavar='LR',
                     help='learning rate (default: 0.01)')
-parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam'],
+parser.add_argument('--optimizer', type=str, default='Adam', choices=['SGD', 'Adam', 'Adadelta'],
                     help='optimizer for training (default: Adam)')
 parser.add_argument('--momentum', type=float, default=0.99, choices=[0.5, 0.99], metavar='M',
                     help='optimizer momentum (default: 0.5)')
@@ -63,10 +56,14 @@ parser.add_argument('--weight_decay', type=float, default=0.0002, choices=[0.000
                     help='optimizer weight decay (default: 0.0005)')
 parser.add_argument('--alpha', type=float, default=-1, metavar='M', 
                     help='learning rate decay factor (default: 0.5)')
-parser.add_argument('--gamma', type=float, default=2, metavar='M', choices=[2, 0.5],
+parser.add_argument('--gamma', type=float, default=0.5, metavar='M', choices=[2, 0.5],
                     help='learning rate decay factor (default: 0.5)')
-parser.add_argument('--loss', type=str, default='BCE', choices = ['CE', 'BCE', 'FocalLoss'],
-                    help='model loss (default: CE)')            
+parser.add_argument('--loss', type=str, default='FocalLoss', choices = ['CE', 'BCE', 'FocalLoss'],
+                    help='model loss (default: CE)') 
+parser.add_argument('--loss_type', type=str, default='softmax', choices = ['focal', 'sigmoid', 'softmax'],
+                    help='model loss (default: CE)')
+parser.add_argument('--weights', type=list, default=[1, 0.5], metavar='M',
+                    help='weights for model training')             
 parser.add_argument('--act-loss', action='store_true', default=True,
                     help = 'function activation loss')  
 parser.add_argument('--reduction', type=str, default='mean', choices = ['mean', 'sum'],
@@ -78,7 +75,7 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before '
                          'logging training status')
-parser.add_argument('--save', type=str, default='model_monai_without_pre-training_BCE_6layers.pt',
+parser.add_argument('--save', type=str, default='model_monai_without_pre-training_softmax_resnet101_3blocks.pt',
                     help='file on which to save model weights')
 
 args = parser.parse_args()
@@ -96,7 +93,7 @@ std = (1.0)
 testDataset = ABIDE3D(split='test', 
         transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean, std)
+            mt_transforms.NormalizeInstance3D()
             ]),
         target_transform=None
         )
@@ -107,6 +104,20 @@ test_loader = DataLoader(testDataset, args.batch_size, shuffle=False, **kwargs)
 # Model
 if args.model == 'resnet50':
     model = ASDNet3D.resnet50(spatial_dims=3, n_input_channels=1, num_classes=args.n_class)
+    if args.pretrained_model == True:
+        model_dict = model.state_dict()
+        pretrain = torch.load('/home/lvbellon/PROJECT/pretrain/resnet_50_23dataset.pth')
+        pretrain['state_dict'] = {k.replace('module.', ''): v for k, v in pretrain['state_dict'].items()}
+        missing = tuple({k for k in model_dict.keys() if k not in pretrain['state_dict']})
+        logging.debug(f"missing in pretrained: {len(missing)}")
+        inside = tuple({k for k in pretrain['state_dict'] if k in model_dict.keys()})
+        logging.debug(f"inside pretrained: {len(inside)}")
+        unused = tuple({k for k in pretrain['state_dict'] if k not in model_dict.keys()})
+        pretrain['state_dict'] = {k: v for k, v in pretrain['state_dict'].items() if k in model_dict.keys()}
+        model.load_state_dict(pretrain['state_dict'], strict=False)
+
+elif args.model == 'resnet101':
+    model = ASDNet3D.resnet101(spatial_dims=3, n_input_channels=1, num_classes=args.n_class)
     if args.pretrained_model == True:
         model_dict = model.state_dict()
         pretrain = torch.load('/home/lvbellon/PROJECT/pretrain/resnet_50_23dataset.pth')
@@ -143,9 +154,11 @@ if args.loss == 'CE':
 elif args.loss == 'BCE':
     if args.act_loss == True:
         activation = nn.Sigmoid()
-        criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
+        #criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
+        criterion = nn.BCELoss(reduction=args.reduction)
     else:
-        criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
+        #criterion = nn.BCEWithLogitsLoss(reduction=args.reduction)
+        criterion = nn.BCELoss(reduction=args.reduction)
 elif args.loss == 'FocalLoss':
     if args.act_loss == True:
         activation = nn.Sigmoid()
@@ -180,7 +193,8 @@ def test(epoch):
         with torch.no_grad():
             output = model(data)
 
-        test_loss += criterion(activation(output.squeeze(1)), target).item()
+        test_loss += CB_loss(target.float(), output.squeeze(), args.weights, args.n_class, args.loss_type, 0.9999, args.gamma)
+
         pred = output.data.cpu().float()
         pred = F.softmax(pred, dim=1).numpy()
         lbl = target.data.max(1)[1].cpu().numpy()
@@ -192,7 +206,7 @@ def test(epoch):
         preds.append(pred)
 
     
-       # Compute precision-recall curve
+       # Compute precision-recall and roc curve
         prec = dict()
         rec = dict()
         plt.figure()
@@ -211,6 +225,29 @@ def test(epoch):
             plt.title("Precision-Recall curve")
             plt.legend(loc="lower right")
             plt.savefig(os.path.join(out,args.save.split('.')[0],'PR_curve.png'))
+        
+        #Compute roc curve
+        fpr = dict()
+        tpr = dict()
+        roc_auc = dict()
+        lw = 2
+        plt.figure()
+        _, ax = plt.subplots()
+        colors =  cycle(['darkorange', 'turquoise'])
+        for i, color in zip(range(args.n_class), colors):
+            lt = [item[i] for item in trues[0]]
+            lp = [item[i] for item in preds[0]]
+            fpr[i], tpr[i], _ = roc_curve(lt, lp)
+            roc_auc[i] = auc(fpr[i], tpr[i])
+            plt.plot(fpr[i], tpr[i], label=f"ROC curve of class {i} (area = {roc_auc[i]:0.2f})", color=color)
+            plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
+            plt.title("Receiver operating characteristic")
+            plt.legend(loc="lower right")
+            plt.savefig(os.path.join(out,args.save.split('.')[0],'ROC_curve.png'))
 
     acc, acc_cls = metrics.label_accuracy_score(lbl, predic, n_class=args.n_class)
     conf_matrix = metrics._generate_matrix(lbl_trues[0], lbl_preds[0])
@@ -246,10 +283,11 @@ def visualization():
     if not osp.exists(out+'/'+args.save.split('.')[0]+'/visualization'):
         os.mkdir(out+'/'+args.save.split('.')[0]+'/visualization')
     
-    
     with open('data/data.json') as json_file:
         data = json.load(json_file)
 
+    '''with open('data/data_example_6.json') as json_file:
+        data = json.load(json_file)'''
     
     test_path = []
     for i in range(len(data['test'])):
@@ -262,6 +300,7 @@ def visualization():
     if args.cuda:
         data, target = data.cuda(), torch.tensor(target)
     data, target = Variable(data), Variable(target)
+    #data = torch.permute(data,(0,1,2,3))
     target = nn.functional.one_hot(target, num_classes=args.n_class).to(torch.float32)
     with torch.no_grad():
         output = model(data.unsqueeze(0).unsqueeze(1).cuda().float())

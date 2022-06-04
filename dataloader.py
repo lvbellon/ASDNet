@@ -1,16 +1,11 @@
 import os
 import json
-from tkinter import Image
 import nibabel
 import random
 import numpy as np
 import cv2
 
-import torch
-from torch import Tensor
-import torch.nn as nn
 from torch.utils.data import Dataset
-import torch.nn.functional as F
 
 
 # Dataset class 2D
@@ -23,10 +18,6 @@ class ABIDE(Dataset):
         with open('data/annotation.json') as json_file:
             annotation = json.load(json_file)
         
-        '''with open('data/data_example_6.json') as json_file:
-            data = json.load(json_file)
-        with open('data/annotation_example_6.json') as json_file:
-            annotation = json.load(json_file)'''
 
         self.data_split = data
         self.annot_split = annotation
@@ -44,14 +35,6 @@ class ABIDE(Dataset):
         for i in range(len(self.annot_split[split])):
             self.index.append(self.annot_split[split][i]['annot'])
         
-        '''input_image = []
-        max = []
-        for i in range(len(self.data_path)):
-            input_image = nibabel.load(self.data_path[i]).get_fdata()
-            breakpoint()
-            max.append(np.max(input_image))
-        max_val = np.max(max)
-        breakpoint()'''
 
     def __len__(self):
         'Denotes the total number of samples'
@@ -81,8 +64,6 @@ class ABIDE(Dataset):
             img_final = self.gammaCorrection((255 * img_final).astype(np.uint8), 1.5)
             img_final = (img_final.astype(np.float)) / 255
         
-        # Image normalization
-        #img_final = img_final/14851.370074828148
 
         if self.transform is not None:
             img_final = self.transform(img_final).float()
@@ -107,12 +88,6 @@ class ABIDE(Dataset):
         R[R>1] = 1
         return R
 
-#breakpoint()
-#dataset = ABIDE(split='train', gamma=True)
-#print(dataset[9])
-#print(len(dataset))
-
-# Dataset class 3D
 class ABIDE3D(Dataset):
     def __init__(self, split, transform=None, target_transform=None):
         super(Dataset, self).__init__()
@@ -121,7 +96,7 @@ class ABIDE3D(Dataset):
             data = json.load(json_file)
         with open('data/annotation.json') as json_file:
             annotation = json.load(json_file)
-        
+    
         '''with open('data/data_example_6.json') as json_file:
             data = json.load(json_file)
         with open('data/annotation_example_6.json') as json_file:
@@ -160,11 +135,8 @@ class ABIDE3D(Dataset):
         mean = np.mean(time)
         img = image[:, :, :, int(mean)]
         img = img[:,:,8:]
-        
-        img = cv2.resize(img, (61,61), interpolation=cv2.INTER_LINEAR)
 
-        # Image normalization
-        #img = img/14851.370074828148
+        img = cv2.resize(img, (64, 64), interpolation=cv2.INTER_LINEAR)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -174,8 +146,3 @@ class ABIDE3D(Dataset):
 
         return img, target
 
-
-#breakpoint()
-#dataset = ABIDE3D(split='valid')
-#print(dataset[9])
-# print(len(dataset))
