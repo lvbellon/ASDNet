@@ -40,11 +40,11 @@ pip install monai
 ```
 ## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
-# Training and validate with ASDNet-2D
+# ASDNet2D
 ```
 $ python train_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 64 --test-batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt 
 ```
-# Training and validate with ASDNet-3D
+# ASDNet3D
 ```
 $ python train_ASDNet3D.py 
 ```
@@ -72,11 +72,11 @@ $ python train_ASDNet3D.py
 
 
 In order to test the model, you'll need to run the following lines:
-# Testing with ASDNet-2D
+# ASDNet2D
 ```
 $ python main_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 128 --n-class 2 --epochs 15 --lr 0.0001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss BCE --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet2D.pt
 ```
-# Testing with ASDNet-3D
+# ASDNet3D
 ```
 $ python main_ASDNet3D.py -mode test
 ```
