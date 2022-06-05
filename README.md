@@ -1,4 +1,7 @@
 # ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Classification Using Resting State fMRI
+
+This is our proposed method, a spatiotemporal extension of Resnet, for binary classification of ASD and TC using the rsfMRI dataset provided by the ABIDE consortium.
+
 ## Usage
 
 To run the models, you'll need to download this repository:
