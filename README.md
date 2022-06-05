@@ -1,4 +1,4 @@
-# ASDNet: Convolutional Neural Networks for Autism Spectrum Disorder Binary Classification Using Resting State fMRI
+# ASDNet: Residual Neural Networks for Autism Spectrum Disorder Binary Classification Using Resting State fMRI
 ## Usage
 
 To run the models, you'll need to download this repository:
