@@ -229,9 +229,8 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, block_inplanes[2], layers[2], spatial_dims, shortcut_type, stride=2)
         self.layer4 = self._make_layer(block, block_inplanes[3], layers[3], spatial_dims, shortcut_type, stride=2)
         self.layer5 = self._make_layer(block, block_inplanes[4], layers[4], spatial_dims, shortcut_type, stride=2)
-        self.layer6 = self._make_layer(block, block_inplanes[5], layers[5], spatial_dims, shortcut_type, stride=2)
         self.avgpool = avgp_type(block_avgpool[spatial_dims])
-        self.fc1 = nn.Linear(block_inplanes[5] * block.expansion, num_classes) if feed_forward else None
+        self.fc1 = nn.Linear(block_inplanes[4] * block.expansion, num_classes) if feed_forward else None
 
 
         for m in self.modules():
@@ -301,7 +300,6 @@ class ResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.layer5(x)
-        x = self.layer6(x)
 
         x = self.avgpool(x)
 
