@@ -35,7 +35,15 @@ unzip MedicalNet_pytorch_files2.zip
 ```
 
 ## Requirements
-PyTorch 0.3.1
+- Python 3.7.0
+- PyTorch-0.4.1
+- CUDA Version 9.0
+
+## Instalation
+
+- Install Python 3.7.0
+- pip install -r requirements.txt
+
 ## Usage (Train and validation)
 In order to train and validate the model, you'll need to run the following lines:
 # ASDNet2D
@@ -58,8 +66,9 @@ $ python train_ASDNet3D.py
 
 ## Network architectures
 # ASDNet2D Architecture
-![My Image](/assets/ASDNet2D.png)
+![](ADNet2D.png)
 # ASDNet3D Architecture
+![](ASDNet3D.png)
 
 ## Usage (Test)
 ----------
@@ -109,6 +118,14 @@ $ python main_ASDNet3D.py -mode demo
       pages={171},
       year={2012},
       publisher={Frontiers}
+}
+
+@inproceedings{cui2019class,
+  title={Class-balanced loss based on effective number of samples},
+  author={Cui, Yin and Jia, Menglin and Lin, Tsung-Yi and Song, Yang and Belongie, Serge},
+  booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+  pages={9268--9277},
+  year={2019}
 }
 
 ```
