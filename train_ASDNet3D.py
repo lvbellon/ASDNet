@@ -35,9 +35,9 @@ parser.add_argument('--model', type=str, default='resnet101', choices=['resnet50
                     help ='model classification for training (default: resnet50)')
 parser.add_argument('--pretrained-model', action='store_true', default=False,
                     help = 'model classification with pretrained weights for training')   
-parser.add_argument('--batch-size', type=int, default=12, metavar='N',
+parser.add_argument('--batch-size', type=int, default=32, metavar='N',
                     help='input batch size for training (default: 32)')
-parser.add_argument('--test-batch-size', type=int, default=16, metavar='N',
+parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
                     help='input batch size for testing (default: 128)')
 parser.add_argument('--n-class', type=int, default=2,
                     help='input number of classes for training (default:2)')
