@@ -36,6 +36,8 @@ writer = SummaryWriter('runs/test_model_monai_without_pre-training_softmax_resne
 
 # Arguments
 parser = argparse.ArgumentParser(description='Autism classification')
+parser.add_argument('--mode', type=str, default='test', choices=['test', 'demo'],
+                    help ='test or demo calculates the results (default: test)')
 parser.add_argument('--model', type=str, default='resnet101', choices=['resnet50', 'resnet101'],
                     help ='model classification for training (default: resnet50)')
 parser.add_argument('--pretrained-model', action='store_true', default=False,
