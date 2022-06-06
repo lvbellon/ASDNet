@@ -55,7 +55,7 @@ $ python train_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 64 -
 ```
 # ASDNet3D
 ```
-$ python train_ASDNet3D.py 
+$ python train_ASDNet3D.py --model resnet101 --batch-size 32 --test-batch-size 128 --n-class 2 --epochs 20 --lr 0.00001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss FocalLoss --loss_type softmax --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet3D.pt
 ```
 ## Method
 
@@ -88,12 +88,12 @@ $ python main_ASDNet2D.py --model resnet50 --pretrained-model --batch-size 128 -
 ```
 # ASDNet3D
 ```
-$ python main_ASDNet3D.py -mode test
+$ python main_ASDNet3D.py --mode test --model resnet101 --batch-size 128 --n-class 2 --epochs 20 --lr 0.00001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss FocalLoss --loss_type softmax --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet3D.pt
 ```
 ## Demo
 To test the model only on a random image of the dataset, you'll need to run the following lines:
 ```
-$ python main_ASDNet3D.py -mode demo
+$ python main_ASDNet3D.py --mode demo --model resnet101 --batch-size 128 --n-class 2 --epochs 20 --lr 0.00001 --optimizer Adam --momentum 0.99 --weight_decay 0 --alpha -1 --gamma 0.5 --loss FocalLoss --loss_type softmax --act-loss --reduction mean --no-cuda False --seed 1 --log-interval 10 --save model_ASDNet3D.pt
 ```
 
 ## References
